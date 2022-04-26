@@ -6,6 +6,7 @@ from .asset import Asset
 from .enums import CompressionType
 from .utils import BinaryReader, lz4_decompress
 
+from os import SEEK_CUR
 
 SIGNATURE_RAW = "UnityRaw"
 SIGNATURE_WEB = "UnityWeb"
@@ -44,6 +45,8 @@ class AssetBundle:
 		self.format_version = buf.read_int()
 		self.unity_version = buf.read_string()
 		self.generator_version = buf.read_string()
+		if self.generator_version=="0.0.0":
+			self.generator_version = "2020.3.33f1"
 
 		if self.is_unityfs:
 			self.load_unityfs(buf)
@@ -98,6 +101,8 @@ class AssetBundle:
 		self.ciblock_size = buf.read_uint()
 		self.uiblock_size = buf.read_uint()
 		flags = buf.read_uint()
+		if self.format_version >=7:
+			buf.seek((16-buf.tell()%16)%16,SEEK_CUR)
 		compression = CompressionType(flags & 0x3F)
 		eof_metadata = flags & 0x80
 		if eof_metadata:

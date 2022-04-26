@@ -117,7 +117,16 @@ class TypeMetadata:
 	def load(self, buf, format=None):
 		if format is None:
 			format = self.asset.format
+		if format >= 22:
+			buf.endian = ">"
+			self.asset.metadata_size = buf.read_uint()
+			self.asset.file_size = buf.read_int64()
+			self.asset.data_offset = buf.read_int64()
+			buf.read_int64()
+			buf.endian = "<"
 		self.generator_version = buf.read_string()
+		if self.generator_version=="0.0.0":
+			self.generator_version = "2020.3.33f1"
 		self.target_platform = RuntimePlatform(buf.read_uint())
 
 		if format >= 13:
